@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('languages', function (Blueprint $table) {
             $table->char('code', 2)->primary();
-            $table->string('name', 50)->nullable(false);
+            $table->string('name', 50);
         });
     }
 

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('slug', 255)->unique()->nullable(false);
+            $table->string('slug', 255)->unique();
         });
     }
 
