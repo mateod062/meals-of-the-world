@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Language;
 use App\Models\Translation;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class LanguagesTableSeeder extends Seeder
 {
