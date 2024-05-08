@@ -6,7 +6,7 @@
 
 ### GET
 ```
- /api/meals/&per_page=?&page=?&lang=?&with=tags,ingredients,category&tags=?$diff_time=?
+ /api/meals/&per_page=?&page=?&lang=?&with=tags,ingredients,category&tags=?$category=?$diff_time=?
 ```
 
 ### Params: 
@@ -15,6 +15,7 @@
     - lang (required) example: en
     - with (optional) example: ingredients,tags,category
     - tags (optional) example: 1,5
+    - category (optional) example: 1
     - diff_time (optional) example: 1492834
 
 ## How to run
