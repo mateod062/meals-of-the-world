@@ -124,7 +124,6 @@
       <excludeFolder url="file://$MODULE_DIR$/meals-of-the-world/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/meals-of-the-world/vendor/astrotomic/laravel-translatable" />
       <excludeFolder url="file://$MODULE_DIR$/meals-of-the-world/vendor/laravel/sanctum" />
-      <excludeFolder url="file://$MODULE_DIR$/meals-of-the-world/vendor/spatie/data-transfer-object" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

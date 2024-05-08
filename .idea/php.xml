@@ -131,7 +131,6 @@
       <path value="$PROJECT_DIR$/meals-of-the-world/vendor/sebastian/code-unit" />
       <path value="$PROJECT_DIR$/meals-of-the-world/vendor/astrotomic/laravel-translatable" />
       <path value="$PROJECT_DIR$/meals-of-the-world/vendor/laravel/sanctum" />
-      <path value="$PROJECT_DIR$/meals-of-the-world/vendor/spatie/data-transfer-object" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
