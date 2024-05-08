@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Services\MealService;
 use Exception;
-use http\Exception\InvalidArgumentException;
-use http\Exception\RuntimeException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * @group Meals
