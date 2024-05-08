@@ -12,7 +12,7 @@ interface MealService
     /**
      * Get all meals
      *
-     * @param array $params ['lang', 'tags', 'page', 'per_page', 'with', 'diff_time']
+     * @param array $params ['lang', 'tags', 'page', 'per_page', 'with', 'diff_time', 'category']
      * @return array
      */
     public function getAllMeals(array $params): array;

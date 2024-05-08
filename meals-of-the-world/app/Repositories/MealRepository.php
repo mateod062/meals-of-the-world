@@ -55,4 +55,12 @@ class MealRepository
     {
         return $meal->delete();
     }
+
+    public function restore(Meal $meal): bool
+    {
+        if ($meal->trashed()) {
+            return $meal->restore();
+        }
+        return false;
+    }
 }

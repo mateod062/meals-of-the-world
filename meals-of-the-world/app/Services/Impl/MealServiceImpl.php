@@ -35,6 +35,7 @@ class MealServiceImpl implements MealService
             'tags' => ['nullable', 'regex:/^(\d+,)*\d+$/'],
             'with' => ['nullable', 'regex:/^(ingredients|tags|category)(,(ingredients|tags|category))*$/'],
             'diff_time' => ['nullable', 'numeric'],
+            'category' => ['nullable', 'string'],
             'lang' => ['required', 'string', 'exists:languages,code'],
             'per_page' => ['nullable', 'integer', 'min:1'],
             'page' => ['nullable', 'integer', 'min:1']
@@ -52,25 +53,34 @@ class MealServiceImpl implements MealService
             }
         ]);
 
-        if (isset($params['category_id'])) {
-            if ($params['category_id'] === 'NULL') {
+        if (!empty($params['with'])) {
+            $relations = array_intersect(explode(',', $params['with']), ['ingredients', 'tags', 'category']);
+            foreach ($relations as $relation) {
+                $query->with($relation . '.translations');
+            }
+        }
+
+        if (isset($params['category'])) {
+            if ($params['category'] === 'NULL') {
                 $query->whereNull('category_id');
             }
-            elseif ($params['category_id'] === '!NULL') {
+            elseif ($params['category'] === '!NULL') {
                 $query->whereNotNull('category_id');
             }
             else {
-                $query->where('category_id', $params['category_id']);
+                $query->where('category_id', $params['category']);
             }
         }
 
         if (!empty($params['tags'])) {
-            $tags = is_array($params['tags']) ? $params['tags'] : explode(',', $params['tags']);
-            if (count($tags) > 0) {
-                $query->whereHas('tags', function ($q) use ($tags) {
-                    $q->whereIn('id', $tags);
-                }, '=', count($tags));
-            }
+            $tags = explode(',', $params['tags']);
+            $count = count($tags);
+
+            $query->where(function ($q) use ($tags, $count) {
+                $q->whereHas('tags', function ($subQuery) use ($tags) {
+                    $subQuery->whereIn('id', $tags);
+                }, '=', $count);
+            });
 
         }
 
@@ -80,13 +90,6 @@ class MealServiceImpl implements MealService
                     ->orWhere('updated_at', '>', Carbon::createFromTimestamp($params['diff_time']))
                     ->orWhere('deleted_at', '>', Carbon::createFromTimestamp($params['diff_time']));
             });
-        }
-
-        if (!empty($params['with'])) {
-            $relations = array_intersect(explode(',', $params['with']), ['ingredients', 'tags', 'category']);
-            foreach ($relations as $relation) {
-                $query->with($relation . '.translations');
-            }
         }
 
         $perPage = $params['per_page'] ?? 10;
