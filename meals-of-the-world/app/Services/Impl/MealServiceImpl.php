@@ -2,14 +2,21 @@
 
 namespace App\Services\Impl;
 
+use App\Models\Category;
 use App\Models\Meal;
 use App\Repositories\MealRepository;
 use App\Services\DTOs\MealDTO;
+use App\Services\DTOs\MealResponseDTO;
 use App\Services\MealService;
+use http\Exception\InvalidArgumentException;
+use http\Exception\RuntimeException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Service Implementation for managing the {@link Meal} model
+ */
 class MealServiceImpl implements MealService
 {
     protected MealRepository $mealRepository;
@@ -22,7 +29,7 @@ class MealServiceImpl implements MealService
     /**
      * @throws ValidationException
      */
-    public function getAllMeals(array $params)
+    public function getAllMeals(array $params): array
     {
         $validator = Validator::make($params, [
             'tags' => ['nullable', 'regex:/^(\d+,)*\d+$/'],
@@ -88,7 +95,7 @@ class MealServiceImpl implements MealService
         $meals = $this->mealRepository->findAll($query, $perPage, $page);
 
         $result = $meals->getCollection()->transform(function ($meal) use ($params) {
-            return new MealDTO($meal, $params['lang'], $params['with'] ?? '', $params['diff_time'] ?? null);
+            return new MealResponseDTO($meal, $params['lang'], $params['with'] ?? '', $params['diff_time'] ?? null);
         });
 
         return [
@@ -103,25 +110,84 @@ class MealServiceImpl implements MealService
         ];
     }
 
-    public function getMealById($id)
+    public function getMealById($id): MealDTO
     {
-        return $this->mealRepository->findById($id);
+        return MealDTO::fromModel($this->mealRepository->findById($id));
     }
 
-    public function createMeal(array $data)
+    /**
+     * @throws ValidationException
+     */
+    public function createMeal(array $params): array
     {
-        return $this->mealRepository->save($data);
+        $data = [
+            'category_id' => Category::where('slug', $params['category']['slug'])->firstOrFail()->id,
+            'tags' => $params['tags'],
+            'ingredients' => $params['ingredients']
+        ];
+
+        $validator = Validator::make($data, [
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'tags' => ['required', 'array', 'min:1'],
+            'tags.*' => ['exists:tags,slug'],
+            'ingredients' => ['required', 'array', 'min:1'],
+            'ingredients.*' => ['exists:ingredients,slug']
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        $this->mealRepository->save($data);
+
+        return $params;
     }
 
-    public function updateMeal($id, array $data)
+    /**
+     * @throws ValidationException | RuntimeException | InvalidArgumentException
+     */
+    public function updateMeal($id, array $params): array
+    {
+        if (!isset($params['id']) || $params['id'] !== $id) {
+            throw new InvalidArgumentException('ID mismatch');
+        }
+
+        $meal = $this->mealRepository->findById($id);
+
+        $data = [
+            'category_id' => Category::where('slug', $params['category']['slug'])->firstOrFail()->id,
+            'tags' => $params['tags'],
+            'ingredients' => $params['ingredients']
+        ];
+
+        $validator = Validator::make($data, [
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'tags' => ['required', 'array', 'min:1'],
+            'tags.*' => ['exists:tags,slug'],
+            'ingredients' => ['required', 'array', 'min:1'],
+            'ingredients.*' => ['exists:ingredients,slug']
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        if (!$this->mealRepository->update($meal, $data)) {
+            throw new RuntimeException('Failed to update meal');
+        }
+
+        return $params;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function deleteMeal($id): void
     {
         $meal = $this->mealRepository->findById($id);
-        return $this->mealRepository->update($meal, $data);
-    }
 
-    public function deleteMeal($id)
-    {
-        $meal = $this->mealRepository->findById($id);
-        return $this->mealRepository->delete($meal);
+        if (!$this->mealRepository->delete($meal)) {
+            throw new RuntimeException('Failed to delete meal');
+        }
     }
 }

@@ -2,15 +2,51 @@
 
 namespace App\Services;
 
+use App\Services\DTOs\MealDTO;
+
+/**
+ * Service Interface for managing the {@link Meal} model
+ */
 interface MealService
 {
-    public function getAllMeals(array $params);
+    /**
+     * Get all meals
+     *
+     * @param array $params ['lang', 'tags', 'page', 'per_page', 'with', 'diff_time']
+     * @return array
+     */
+    public function getAllMeals(array $params): array;
 
-    public function getMealById(int $id);
+    /**
+     * Get meal by id
+     *
+     * @param int $id
+     * @return MealDTO
+     */
+    public function getMealById(int $id): MealDTO;
 
-    public function createMeal(array $data);
+    /**
+     * Create a new meal
+     *
+     * @param array $params
+     * @return array
+     */
+    public function createMeal(array $params): array;
 
-    public function updateMeal(int $id, array $data);
+    /**
+     * Update meal by id
+     *
+     * @param int $id
+     * @param array $params
+     * @return array
+     */
+    public function updateMeal(int $id, array $params): array;
 
-    public function deleteMeal(int $id);
+    /**
+     * Delete meal by id
+     *
+     * @param int $id
+     * @return void
+     */
+    public function deleteMeal(int $id): void;
 }

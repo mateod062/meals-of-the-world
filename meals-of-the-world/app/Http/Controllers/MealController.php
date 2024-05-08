@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Services\MealService;
 use Exception;
+use http\Exception\InvalidArgumentException;
+use http\Exception\RuntimeException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @group Meals
+ *
+ * REST controller for managing the {@link Meal} model
+ */
 class MealController extends Controller
 {
     protected MealService $mealService;
@@ -17,9 +25,9 @@ class MealController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Display all meals
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
             $result = $this->mealService->getAllMeals($request->all());
@@ -49,42 +57,90 @@ class MealController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Store a new meal
+     */
+    public function store(Request $request): JsonResponse
+    {
+        try {
+            $meal = $this->mealService->createMeal($request->all());
+            return response()->json($meal, 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->validator->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal server error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
 
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display the specified meal
      */
-    public function store(Request $request)
+    public function show(string $id): JsonResponse
     {
-        $meal = $this->mealService->createMeal($request->all());
-        return response()->json($meal, 201);
+        try {
+            $meal = $this->mealService->getMealById($id);
+            return response()->json($meal);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal server error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Update the specified meal
      */
-    public function show(string $id)
+    public function update(Request $request, string $id): JsonResponse
     {
-        $meal = $this->mealService->getMealById($id);
-        return response()->json($meal);
+        try {
+            $meal = $this->mealService->updateMeal($id, $request->all());
+            return response()->json($meal);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => $e->validator->errors()
+            ], 422);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 400);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal server error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Remove the specified meal
      */
-    public function update(Request $request, string $id)
+    public function destroy(string $id): JsonResponse
     {
-        $meal = $this->mealService->updateMeal($id, $request->all());
-        return response()->json($meal);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $this->mealService->deleteMeal($id);
-        return response()->json(null, 204);
+        try {
+            $this->mealService->deleteMeal($id);
+            return response()->json(null, 204);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Internal server error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
