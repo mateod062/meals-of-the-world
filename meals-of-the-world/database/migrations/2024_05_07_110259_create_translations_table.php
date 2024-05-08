@@ -17,9 +17,8 @@ return new class extends Migration
             $table->char('language_code', 2);
             $table->string('title', 255);
             $table->text('description')->nullable();
-            $table->primary(['translatable_id', 'language_code']);
+            $table->primary(['translatable_type', 'translatable_id', 'language_code']);
             $table->foreign('language_code')->references('code')->on('languages')->onDelete('cascade');
-            $table->unique(['translatable_type', 'translatable_id', 'language_code'], 'translatable_lang_unique');
             $table->index(['translatable_type', 'translatable_id']);
         });
     }
