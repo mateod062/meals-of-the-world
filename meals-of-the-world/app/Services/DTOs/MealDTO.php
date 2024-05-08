@@ -3,55 +3,33 @@
 namespace App\Services\DTOs;
 
 use App\Models\Meal;
-use Illuminate\Support\Carbon;
 
+/**
+ * DTO for the {@link Meal} model
+ */
 class MealDTO
 {
     public int $id;
-    public string $title;
-    public string $description;
-    public string $status;
     public CategoryDTO $category;
     public array $tags;
     public array $ingredients;
 
-    public function __construct(Meal $meal, string $lang, $with = '', $diff_time = null)
+    public function __construct(string $categorySlug, array $tags, array $ingredients)
     {
-        $this->id = $meal->id;
-        $this->title = $meal->translations->where('language_code', $lang)->first()->title ?? '';
-        $this->description = $meal->translations->where('language_code', $lang)->first()->description ?? '';
-        $this->status = $this->determineStatus($meal, $diff_time);
-
-        $relations = explode(',', $with);
-        if (in_array('category', $relations) && $meal->relationLoaded('category')) {
-            $this->category = new CategoryDTO($meal->category, $lang);
-        }
-        if (in_array('tags', $relations) && $meal->relationLoaded('tags')) {
-            $this->tags = $meal->tags->map(function ($tag) use ($lang) {
-                return new TagDTO($tag, $lang);
-            })->toArray();
-        }
-        if (in_array('ingredients', $relations) && $meal->relationLoaded('ingredients')) {
-            $this->ingredients = $meal->ingredients->map(function ($ingredient) use ($lang) {
-                return new IngredientDTO($ingredient, $lang);
-            })->toArray();
-        }
+        $this->category = new CategoryDTO($categorySlug);
+        $this->tags = array_map(fn($slug) => new TagDTO($slug), $tags);
+        $this->ingredients = array_map(fn($slug) => new IngredientDTO($slug), $ingredients);
     }
 
-    public function determineStatus(Meal $meal, $diff_time)
+    public static function fromModel(Meal $meal): MealDTO
     {
-        if (!$diff_time) return 'created';
+        $mealDTO = new MealDTO(
+            $meal->category->slug,
+            $meal->tags->pluck('slug')->toArray(),
+            $meal->ingredients->pluck('slug')->toArray()
+        );
+        $mealDTO->id = $meal->id;
 
-        $createdAt = $meal->created_at ? $meal->created_at->getTimestamp() : null;
-        $updatedAt = $meal->updated_at ? $meal->updated_at->getTimestamp() : null;
-        $deletedAt = $meal->deleted_at ? $meal->deleted_at->getTimestamp() : null;
-
-        $latest = max($createdAt, $updatedAt, $deletedAt ?? 0);
-
-        if ($latest > $diff_time) {
-            if ($deletedAt && $deletedAt > $diff_time) return 'deleted';
-            if ($updatedAt > $createdAt) return 'modified';
-        }
-        return 'created';
+        return $mealDTO;
     }
 }

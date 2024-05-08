@@ -4,16 +4,24 @@ namespace App\Services\DTOs;
 
 use App\Models\Tag;
 
+/**
+ * DTO for the {@link Tag} model
+ */
 class TagDTO
 {
     public int $id;
-    public string $title;
     public string $slug;
 
-    public function __construct(Tag $tag, string $lang)
+    public function __construct(string $slug)
     {
-        $this->id = $tag->id;
-        $this->title = $tag->translations->where('language_code', $lang)->first()->title ?? '';
-        $this->slug = $tag->slug;
+        $this->slug = $slug;
+    }
+
+    public static function fromModel(Tag $tag): TagDTO
+    {
+        $tagDTO = new TagDTO($tag->slug);
+        $tagDTO->id = $tag->id;
+
+        return $tagDTO;
     }
 }
